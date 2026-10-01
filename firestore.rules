@@ -1,0 +1,20 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /families/{token} {
+      // Quien tiene el link puede leer SU documento...
+      allow get: if true;
+      // ...pero nadie puede listar todas las familias sin estar logueado.
+      allow list: if request.auth != null;
+
+      // El invitado solo puede tocar los campos de su confirmación.
+      allow update: if request.auth != null
+        || request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['guests', 'attending', 'status', 'updatedAt']);
+
+      // Crear y borrar familias: solo los novios.
+      allow create, delete: if request.auth != null;
+    }
+  }
+}
