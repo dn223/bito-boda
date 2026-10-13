@@ -2,7 +2,9 @@ export const WEDDING = {
   bride: 'Coni',
   groom: 'Bito',
   coupleLabel: 'Bito & Coni',
-  date: '2026-12-20T17:00:00',
+  // Hora de la ceremonia con la zona de El Salvador: la cuenta regresiva
+  // marca lo mismo aunque el invitado esté en otro país.
+  date: '2026-12-20T15:30:00-06:00',
   dateLabel: '20 de Diciembre de 2026',
   dateBig: 'Domingo 20 de Diciembre',
   venueCapacity: 120,

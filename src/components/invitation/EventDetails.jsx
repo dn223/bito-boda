@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { Clock, MapPin, Navigation } from 'lucide-react'
-import fincaPhoto from '../../assets/finca.png'
+import fincaPhoto from '../../assets/finca.jpg'
 import { WEDDING } from '../../mockData/guests'
 import { Reveal } from '../ui/Reveal'
 
@@ -24,6 +24,8 @@ export function EventDetails() {
       >
         <motion.img
           src={fincaPhoto}
+          loading="lazy"
+          decoding="async"
           alt={event.place}
           className="h-full w-full object-cover"
           initial={{ scale: 1.06 }}

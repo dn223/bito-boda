@@ -19,6 +19,8 @@ export function InfoCards({ background }) {
           <>
             <img
               src={background}
+              loading="lazy"
+              decoding="async"
               alt=""
               aria-hidden
               className="absolute inset-0 -z-10 h-full w-full object-cover object-[center_25%]"

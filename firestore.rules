@@ -2,19 +2,44 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // Solo las cuentas con un documento en admins/{uid} manejan la boda.
+    // Estar logueado no basta: cualquiera puede crearse una cuenta con la
+    // clave pública de la app.
+    function isAdmin() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // La confirmación del invitado: solo puede marcar nombres de SU familia,
+    // sin repetir, y el estado y el conteo tienen que cuadrar.
+    function isValidRsvp() {
+      let next = request.resource.data;
+      let attendees = next.guests;
+      return next.diff(resource.data).affectedKeys()
+          .hasOnly(['guests', 'attending', 'status', 'song', 'updatedAt'])
+        && attendees is list
+        && attendees.hasOnly(resource.data.members)
+        && attendees.toSet().size() == attendees.size()
+        && next.attending == attendees.size()
+        && ((attendees.size() > 0 && next.status == 'confirmed')
+          || (attendees.size() == 0 && next.status == 'declined'))
+        && (!('song' in next) || (next.song is string && next.song.size() <= 200))
+        && next.updatedAt == request.time;
+    }
+
+    match /admins/{uid} {
+      // Cada admin puede comprobar que lo es; nadie lo edita desde la app.
+      allow get: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+
     match /families/{token} {
       // Quien tiene el link puede leer SU documento...
       allow get: if true;
-      // ...pero nadie puede listar todas las familias sin estar logueado.
-      allow list: if request.auth != null;
-
-      // El invitado solo puede tocar los campos de su confirmación.
-      allow update: if request.auth != null
-        || request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['guests', 'attending', 'status', 'updatedAt']);
-
-      // Crear y borrar familias: solo los novios.
-      allow create, delete: if request.auth != null;
+      // ...pero listar, crear y borrar familias es solo de los novios.
+      allow list, create, delete: if isAdmin();
+      allow update: if isAdmin() || isValidRsvp();
     }
   }
 }

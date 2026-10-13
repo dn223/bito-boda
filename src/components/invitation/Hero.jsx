@@ -5,7 +5,7 @@ import {
   useTransform,
   useMotionTemplate,
 } from 'framer-motion'
-import couplePhoto from '../../assets/couple.png'
+import couplePhoto from '../../assets/couple.jpg'
 import { WEDDING } from '../../mockData/guests'
 
 export function Hero() {

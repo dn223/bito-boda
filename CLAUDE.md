@@ -20,21 +20,23 @@ No hay suite de tests configurada (no hay `test` script ni framework instalado).
 
 BITO es una SPA de invitación de boda con RSVP, construida con Vite + React 19 + React Router + Tailwind v4. Tiene dos rutas principales (`src/App.jsx`):
 
+- `/` (y cualquier ruta desconocida) → `HomePage`: portada neutra que pide abrir el link personal.
 - `/rsvp/:token` → `InvitationPage`: invitación pública, cada familia accede con su propio token (ej. `familia-navarrete`).
 - `/dashboard` → `DashboardPage`: panel de administración para gestionar invitados (CRUD, export CSV, estadísticas).
 
 ### Capa de datos: Firebase
 
 - Backend real en Firebase (proyecto `boda-byc`). `src/services/firebase.js` inicializa la app y exporta `db`, `auth` y el nombre de la colección (`families`). La config es pública: lo que protege los datos son las reglas.
-- Firestore: colección `families`, **el id del documento ES el token de la familia** (`familia-garcia-7f3a`). Campos: `family`, `members[]` (nombres invitados, uno por pase), `passes`, `guests[]` (`{ name }` de quienes confirmaron), `attending`, `status`, `song`, `notes`, `updatedAt`.
+- Firestore: colección `families`, **el id del documento ES el token de la familia** (`familia-garcia-7f3a`). Campos: `family`, `members[]` (nombres invitados, uno por pase), `passes`, `guests[]` (nombres de quienes confirmaron, como strings; `fromDoc` normaliza a `{ name }` y acepta el formato viejo de objetos), `attending`, `status`, `song`, `notes`, `updatedAt`.
 - `src/services/guestsApi.js` es la única puerta a los datos (`listGuests`, `getGuestByToken`, `createGuest`, `updateGuest`, `deleteGuest`, `submitRsvp`, `computeStats`, `guestsToCsv`). Tanto `InvitationPage` como el Dashboard (vía `useGuests`) pasan por aquí.
 - `updateGuest` ignora `token`/`id` en el patch: cambiar el token significaría mover el documento y rompería los links ya enviados.
 - `createGuest` genera el token con `slugToken`: slug del nombre + sufijo aleatorio de 6 hex, para que un link no se deduzca de otro.
-- `submitRsvp(token, { guests })` recibe los nombres confirmados y deriva `attending` y `status`.
-- Reglas en `firestore.rules` (publicadas desde la consola): `get` público (quien tiene el link lee su doc), `list` solo autenticado, `update` público **solo** sobre `guests`/`attending`/`status`/`updatedAt`, `create`/`delete` solo autenticado.
-- `/dashboard` va envuelto en `LoginGate` (Firebase Auth, correo y contraseña). El usuario admin se crea a mano en la consola de Firebase.
+- `submitRsvp(token, { guests, song })` recibe los nombres confirmados (y la canción opcional) y deriva `attending` y `status`.
+- Reglas en `firestore.rules` (se publican con `npx firebase deploy --only firestore:rules`): `get` público (quien tiene el link lee su doc); `list`/`create`/`delete` solo admins; `update` del invitado validado: solo `guests`/`attending`/`status`/`song`/`updatedAt`, `guests` ⊆ `members` sin repetidos, `attending == guests.size()`, `status` coherente, `song` ≤ 200 caracteres.
+- Admins: colección `admins/{uid}` (documento vacío creado a mano en la consola). Estar logueado no basta, porque cualquiera puede crearse una cuenta con la clave pública.
+- `/dashboard` va envuelto en `LoginGate` (Firebase Auth, correo y contraseña) que además comprueba `isAdmin(uid)`.
+- App Check (reCAPTCHA Enterprise) se activa en `firebase.js` solo si existe `VITE_RECAPTCHA_SITE_KEY` en `.env.local` (ver `.env.example`).
 - `src/mockData/guests.js` ya solo guarda `WEDDING` (config de la boda) y `getDashboardStats`. Los datos de ejemplo se eliminaron.
-- `src/services/db.js` es un re-export deprecado de `guestsApi.js` — no añadir lógica nueva ahí.
 
 ### Deploy
 
@@ -50,13 +52,13 @@ npx firebase deploy      # hosting + reglas de Firestore
 
 ```
 src/
-  pages/            InvitationPage, DashboardPage (una por ruta)
+  pages/            HomePage, InvitationPage, DashboardPage (una por ruta)
   components/
     invitation/     secciones de la landing pública (Envelope, Hero, Countdown, EventDetails, RsvpForm, PhotoBreak, InfoCards, OliveBranch (solo en la cuenta regresiva), Timeline, FloralMargins, FallingPetals)
     dashboard/      GuestTable (lista + filtros), GuestFormModal, LoginGate, Panel (tarjeta base), CountUp
     ui/             primitivos reutilizables (Button, Card, Input, Select, Badge, Reveal)
   hooks/            useGuests (estado del dashboard), useCountdown
-  services/         guestsApi (única puerta a Firestore), firebase (init del SDK), db (deprecado)
+  services/         guestsApi (única puerta a Firestore), firebase (init del SDK + App Check)
   mockData/         guests.js — solo WEDDING (config de la boda) y getDashboardStats
 ```
 

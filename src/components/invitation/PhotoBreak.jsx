@@ -26,6 +26,8 @@ export function PhotoBreak({
         >
           <motion.img
             src={src}
+            loading="lazy"
+            decoding="async"
             alt={alt}
             className="h-full w-full object-cover"
             style={{ objectPosition }}

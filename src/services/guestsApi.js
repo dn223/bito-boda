@@ -9,7 +9,7 @@ import {
   updateDoc,
 } from 'firebase/firestore'
 import { WEDDING, getDashboardStats } from '../mockData/guests'
-import { FAMILIES, db } from './firebase'
+import { ADMINS, FAMILIES, db } from './firebase'
 
 // El id del documento en Firestore ES el token de la familia.
 function fromDoc(snapshot) {
@@ -19,7 +19,9 @@ function fromDoc(snapshot) {
     id: snapshot.id,
     token: snapshot.id,
     members: data.members || [],
-    guests: data.guests || [],
+    // Antes se guardaba { name }; ahora solo el nombre (las reglas lo validan
+    // contra members). Se aceptan ambos para no romper confirmaciones viejas.
+    guests: (data.guests || []).map((g) => (typeof g === 'string' ? { name: g } : g)),
   }
 }
 
@@ -39,6 +41,13 @@ function slugToken(family) {
 
 export async function getWeddingConfig() {
   return WEDDING
+}
+
+// Una cuenta solo entra al panel si existe admins/{uid} (se crea en la consola).
+export async function isAdmin(uid) {
+  if (!uid) return false
+  const snapshot = await getDoc(doc(db, ADMINS, uid))
+  return snapshot.exists()
 }
 
 export async function listGuests() {
@@ -83,14 +92,16 @@ export async function deleteGuest(id) {
   return true
 }
 
-export async function submitRsvp(token, { guests: attendees = [] }) {
-  const count = attendees.length
-  await updateDoc(doc(db, FAMILIES, token), {
-    guests: attendees,
-    attending: count,
-    status: count > 0 ? 'confirmed' : 'declined',
+export async function submitRsvp(token, { guests: attendees = [], song }) {
+  const names = [...new Set(attendees.map((p) => (typeof p === 'string' ? p : p.name)))]
+  const patch = {
+    guests: names,
+    attending: names.length,
+    status: names.length > 0 ? 'confirmed' : 'declined',
     updatedAt: serverTimestamp(),
-  })
+  }
+  if (typeof song === 'string') patch.song = song.trim().slice(0, 200)
+  await updateDoc(doc(db, FAMILIES, token), patch)
   return getGuestByToken(token)
 }
 

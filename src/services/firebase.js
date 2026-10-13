@@ -1,4 +1,5 @@
 import { initializeApp } from 'firebase/app'
+import { ReCaptchaEnterpriseProvider, initializeAppCheck } from 'firebase/app-check'
 import { getAuth } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 
@@ -15,6 +16,17 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig)
 
+// App Check frena bots que usen la config pública fuera de la web de la boda.
+// Se activa solo si hay clave en .env.local (VITE_RECAPTCHA_SITE_KEY).
+const appCheckKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY
+if (appCheckKey) {
+  initializeAppCheck(app, {
+    provider: new ReCaptchaEnterpriseProvider(appCheckKey),
+    isTokenAutoRefreshEnabled: true,
+  })
+}
+
 export const db = getFirestore(app)
 export const auth = getAuth(app)
 export const FAMILIES = 'families'
+export const ADMINS = 'admins'

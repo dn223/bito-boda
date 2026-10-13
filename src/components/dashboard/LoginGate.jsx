@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth'
 import { LogOut } from 'lucide-react'
 import { auth } from '../../services/firebase'
+import { isAdmin } from '../../services/guestsApi'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
 
@@ -14,14 +15,18 @@ const MESSAGES = {
 
 export function LoginGate({ children }) {
   const [user, setUser] = useState(null)
+  const [allowed, setAllowed] = useState(false)
   const [checking, setChecking] = useState(true)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState(null)
   const [signing, setSigning] = useState(false)
 
-  useEffect(() => onAuthStateChanged(auth, (next) => {
+  // Estar logueado no basta: la cuenta tiene que estar en admins/{uid}.
+  useEffect(() => onAuthStateChanged(auth, async (next) => {
+    setChecking(true)
     setUser(next)
+    setAllowed(next ? await isAdmin(next.uid).catch(() => false) : false)
     setChecking(false)
   }), [])
 
@@ -88,6 +93,22 @@ export function LoginGate({ children }) {
             </form>
           </div>
         </motion.div>
+      </div>
+    )
+  }
+
+  if (!allowed) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#f5f2ec] p-4">
+        <div className="w-full max-w-sm rounded-2xl border border-linen-deep bg-white p-8 text-center">
+          <h1 className="font-serif text-3xl text-ink">Sin acceso</h1>
+          <p className="mt-3 text-sm text-slate-600">
+            La cuenta {user.email} no tiene permiso para ver el panel.
+          </p>
+          <Button type="button" className="mt-6 w-full bg-olive py-3 hover:bg-olive-deep" onClick={() => signOut(auth)}>
+            Usar otra cuenta
+          </Button>
+        </div>
       </div>
     )
   }

@@ -4,6 +4,7 @@ import { Check } from 'lucide-react'
 import { submitRsvp } from '../../services/guestsApi'
 import { Button } from '../ui/Button'
 import { Card } from '../ui/Card'
+import { Input } from '../ui/Input'
 import { Reveal } from '../ui/Reveal'
 
 // Estado inicial: si la familia ya confirmó, se recupera su respuesta anterior.
@@ -14,6 +15,7 @@ function initialPeople(family) {
 
 export function RsvpForm({ family, onDone }) {
   const [people, setPeople] = useState(() => initialPeople(family))
+  const [song, setSong] = useState(family.song || '')
   const [phase, setPhase] = useState('form')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
@@ -41,7 +43,8 @@ export function RsvpForm({ family, onDone }) {
     setError(null)
     try {
       await submitRsvp(family.token, {
-        guests: going.map(({ name }) => ({ name })),
+        guests: going.map(({ name }) => name),
+        song,
       })
       setPhase('success')
     } catch (err) {
@@ -177,6 +180,16 @@ export function RsvpForm({ family, onDone }) {
             <span className="font-serif text-2xl text-ink">{going.length}</span> de{' '}
             {people.length} asistirán
           </p>
+
+          {going.length > 0 && (
+            <Input
+              label="Una canción que no puede faltar (opcional)"
+              value={song}
+              maxLength={200}
+              onChange={(e) => setSong(e.target.value)}
+              placeholder="Canción — Artista"
+            />
+          )}
 
           {error && <p className="text-center text-sm text-red-600">{error}</p>}
 
