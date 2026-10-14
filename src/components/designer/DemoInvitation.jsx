@@ -1,24 +1,41 @@
-import { useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { useLayoutEffect, useRef, useState } from 'react'
+import gsap from 'gsap'
+import { SplitText } from 'gsap/SplitText'
 import { CalendarDays, Check } from 'lucide-react'
 import { resolveTheme } from '../../designer/catalog'
+import { LABEL, prefersReducedMotion, tint } from '../../designer/style'
 import { useGoogleFonts } from '../../hooks/useGoogleFonts'
+import { Splash } from './Splashes'
+
+gsap.registerPlugin(SplitText)
 
 // Invitación de muestra que se pinta entera desde la configuración del
 // diseñador. Vive dentro de su propio contenedor con scroll, así sirve igual
-// dentro del marco de celular que a pantalla completa.
-
-const EASE = [0.22, 1, 0.36, 1]
-const LABEL = 'text-[11px] font-medium uppercase tracking-[0.38em]'
-
-const wax = (color) =>
-  `radial-gradient(circle at 34% 30%, color-mix(in srgb, ${color} 45%, white), ${color} 48%, color-mix(in srgb, ${color} 62%, black))`
-const tint = (color, amount, base = 'transparent') => `color-mix(in srgb, ${color} ${amount}%, ${base})`
+// dentro del marco de celular que a pantalla completa. Las aperturas están en
+// Splashes.jsx y se animan con GSAP.
 
 export function DemoInvitation({ config, uploadedPhoto, className = '' }) {
   const t = resolveTheme(config, uploadedPhoto)
   const [opened, setOpened] = useState(config.splash === 'ninguno')
+  const [revealed, setRevealed] = useState(opened)
+  const heroRef = useRef(null)
   useGoogleFonts([t.fontGoogle])
+
+  // Entrada de la portada cuando la apertura la deja ver: la foto se enfoca
+  // y los nombres aparecen letra por letra.
+  useLayoutEffect(() => {
+    if (!revealed || prefersReducedMotion()) return undefined
+    const ctx = gsap.context(() => {
+      const q = gsap.utils.selector(heroRef)
+      const names = new SplitText(q('[data-a=hero-names]'), { type: 'words,chars' })
+      gsap
+        .timeline()
+        .from(q('[data-a=hero-photo]'), { scale: 1.15, filter: 'blur(6px)', duration: 2.2, ease: 'expo.out' })
+        .from(names.chars, { autoAlpha: 0, yPercent: 70, rotation: 6, filter: 'blur(6px)', stagger: 0.04, duration: 0.9, ease: 'power3.out' }, 0.25)
+        .from(q('[data-a=hero-cta]'), { autoAlpha: 0, y: 16, duration: 0.8, ease: 'power2.out' }, 0.9)
+    }, heroRef)
+    return () => ctx.revert()
+  }, [revealed])
 
   const display = { fontFamily: t.fontCss }
   const props = { t, config, display }
@@ -27,7 +44,9 @@ export function DemoInvitation({ config, uploadedPhoto, className = '' }) {
   return (
     <div className={`relative overflow-hidden ${className}`} style={{ backgroundColor: t.ground, color: t.ink }}>
       <div className="h-full overflow-y-auto overscroll-contain">
-        <Hero {...props} />
+        <div ref={heroRef} className="h-full">
+          <Hero {...props} />
+        </div>
         <SaveTheDate {...props} />
         <RsvpSample {...props} />
         <footer className="px-6 py-12 text-center" style={{ backgroundColor: t.primary, color: t.ground }}>
@@ -39,187 +58,8 @@ export function DemoInvitation({ config, uploadedPhoto, className = '' }) {
         </footer>
       </div>
 
-      <AnimatePresence>
-        {!opened && <Splash key="splash" {...props} onOpen={() => setOpened(true)} />}
-      </AnimatePresence>
+      {!opened && <Splash {...props} onReveal={() => setRevealed(true)} onDone={() => setOpened(true)} />}
     </div>
-  )
-}
-
-/* ---------- Aperturas ---------- */
-
-function Splash({ config, ...props }) {
-  if (config.splash === 'cortina') return <CurtainSplash config={config} {...props} />
-  if (config.splash === 'monograma') return <MonogramSplash config={config} {...props} />
-  return <EnvelopeSplash config={config} {...props} />
-}
-
-function Initials({ t, big = 'text-3xl', small = 'text-base' }) {
-  return (
-    <>
-      <span className={`${big} italic leading-none`}>{t.initials[0]}</span>
-      <span className={`${small} mx-0.5 italic leading-none`}>&amp;</span>
-      <span className={`${big} italic leading-none`}>{t.initials[1]}</span>
-    </>
-  )
-}
-
-function EnvelopeSplash({ t, config, display, onOpen }) {
-  const [opening, setOpening] = useState(false)
-  const open = () => {
-    if (opening) return
-    setOpening(true)
-    setTimeout(onOpen, 1300)
-  }
-  const fold = tint(t.ground, 86, t.ink)
-
-  return (
-    <motion.div
-      className="absolute inset-0 z-30 overflow-hidden"
-      style={{ backgroundColor: t.ground, perspective: 1400 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      <div aria-hidden className="absolute inset-0" style={{ background: fold, clipPath: 'polygon(0 0, 52% 58%, 0 100%)' }} />
-      <div aria-hidden className="absolute inset-0" style={{ background: fold, clipPath: 'polygon(100% 0, 48% 58%, 100% 100%)' }} />
-      <div aria-hidden className="absolute inset-0" style={{ background: tint(t.ground, 93, t.ink), clipPath: 'polygon(0 100%, 50% 51%, 100% 100%)' }} />
-
-      <motion.div
-        aria-hidden
-        className="absolute inset-x-0 top-0 h-[58.4%] origin-top"
-        style={{ filter: 'drop-shadow(0 12px 18px rgba(0,0,0,0.28))' }}
-        animate={{ rotateX: opening ? -172 : 0 }}
-        transition={{ duration: 1, ease: [0.4, 0, 0.2, 1] }}
-      >
-        <div className="absolute inset-0" style={{ background: t.line, clipPath: 'polygon(0 0, 100% 0, 50% 100%)' }} />
-        <div className="absolute inset-0" style={{ background: t.primary, clipPath: 'polygon(0 0, 100% 0, 50% 98%)' }} />
-      </motion.div>
-
-      <motion.div
-        className="absolute inset-x-0 top-[10%] flex flex-col items-center px-6 text-center"
-        style={{ color: t.ground }}
-        animate={{ opacity: opening ? 0 : 1 }}
-        transition={{ duration: 0.3 }}
-      >
-        <p className={`${LABEL} opacity-85`}>La boda de</p>
-        <p className="mt-3 text-5xl italic leading-none" style={display}>
-          {config.nameA} <span style={{ color: t.line }}>&amp;</span> {config.nameB}
-        </p>
-      </motion.div>
-
-      <div className="absolute left-1/2 top-[58.4%] z-10 -translate-x-1/2 -translate-y-1/2">
-        <motion.button
-          type="button"
-          onClick={open}
-          aria-label="Abrir la invitación"
-          className="flex h-24 w-24 cursor-pointer items-center justify-center rounded-full"
-          style={{
-            background: wax(t.seal),
-            boxShadow: '0 10px 20px rgba(30,25,10,0.38), inset 0 2px 3px rgba(255,255,255,0.45), inset 0 -4px 8px rgba(0,0,0,0.25)',
-          }}
-          animate={opening ? { scale: 0.7, opacity: 0, rotate: -15 } : { scale: 1, opacity: 1, rotate: 0 }}
-          whileTap={{ scale: 0.94 }}
-          transition={{ duration: 0.45 }}
-        >
-          <span
-            className="flex h-[74px] w-[74px] items-center justify-center rounded-full border"
-            style={{ ...display, borderColor: 'rgba(0,0,0,0.22)', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.2)', color: tint(t.seal, 35, 'black') }}
-          >
-            <Initials t={t} />
-          </span>
-        </motion.button>
-      </div>
-
-      <motion.p
-        className={`absolute inset-x-0 bottom-[9%] text-center ${LABEL}`}
-        style={{ color: t.primary }}
-        animate={opening ? { opacity: 0 } : { opacity: [0.5, 1, 0.5] }}
-        transition={opening ? { duration: 0.3 } : { duration: 2.6, repeat: Infinity }}
-      >
-        Toca el sello para abrir
-      </motion.p>
-    </motion.div>
-  )
-}
-
-function CurtainSplash({ t, config, display, onOpen }) {
-  const [opening, setOpening] = useState(false)
-  const open = () => {
-    if (opening) return
-    setOpening(true)
-    setTimeout(onOpen, 1050)
-  }
-  const panel = { backgroundColor: t.primary }
-
-  return (
-    <motion.div className="absolute inset-0 z-30 overflow-hidden" exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
-      <motion.div
-        aria-hidden
-        className="absolute inset-y-0 left-0 w-1/2"
-        style={{ ...panel, boxShadow: 'inset -1px 0 0 rgba(255,255,255,0.14)' }}
-        animate={{ x: opening ? '-100%' : '0%' }}
-        transition={{ duration: 1, ease: EASE }}
-      />
-      <motion.div
-        aria-hidden
-        className="absolute inset-y-0 right-0 w-1/2"
-        style={{ ...panel, boxShadow: 'inset 1px 0 0 rgba(0,0,0,0.12)' }}
-        animate={{ x: opening ? '100%' : '0%' }}
-        transition={{ duration: 1, ease: EASE }}
-      />
-      <motion.button
-        type="button"
-        onClick={open}
-        aria-label="Abrir la invitación"
-        className="absolute inset-0 flex cursor-pointer flex-col items-center justify-center px-6 text-center"
-        style={{ color: t.ground }}
-        animate={{ opacity: opening ? 0 : 1 }}
-        transition={{ duration: 0.3 }}
-      >
-        <span className={`${LABEL} opacity-85`}>Nos casamos</span>
-        <span
-          className="mt-8 flex h-36 w-36 items-center justify-center rounded-full border"
-          style={{ ...display, borderColor: t.line, backgroundColor: t.primary, boxShadow: `0 0 0 8px ${t.primary}, 0 0 0 9px ${tint(t.line, 60)}` }}
-        >
-          <Initials t={t} big="text-5xl" small="text-2xl" />
-        </span>
-        <span className="mt-9 text-4xl leading-tight" style={display}>
-          {config.nameA} &amp; {config.nameB}
-        </span>
-        <span className="mt-3 text-xs uppercase tracking-[0.3em] opacity-85">{config.date}</span>
-        <span className={`${LABEL} mt-14 animate-pulse opacity-85`}>Toca para abrir</span>
-      </motion.button>
-    </motion.div>
-  )
-}
-
-function MonogramSplash({ t, config, display, onOpen }) {
-  return (
-    <motion.button
-      type="button"
-      onClick={onOpen}
-      aria-label="Entrar a la invitación"
-      className="absolute inset-0 z-30 flex cursor-pointer flex-col items-center justify-center px-8 text-center"
-      style={{ backgroundColor: t.ground, color: t.ink }}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0, scale: 1.06 }}
-      transition={{ duration: 0.7, ease: EASE }}
-    >
-      <span className="relative flex h-48 w-48 items-center justify-center rounded-full border" style={{ borderColor: t.line }}>
-        <span aria-hidden className="absolute inset-2 rounded-full border opacity-50" style={{ borderColor: t.line }} />
-        <span className="flex items-center" style={{ ...display, color: t.primary }}>
-          <Initials t={t} big="text-6xl" small="text-3xl" />
-        </span>
-      </span>
-      <span className="mt-10 text-4xl leading-tight" style={display}>
-        {config.nameA} &amp; {config.nameB}
-      </span>
-      <span className="mt-3 text-xs uppercase tracking-[0.3em] opacity-75">{config.date}</span>
-      <span className={`${LABEL} mt-14 animate-pulse`} style={{ color: t.primary }}>
-        Toca para entrar
-      </span>
-    </motion.button>
   )
 }
 
@@ -227,7 +67,7 @@ function MonogramSplash({ t, config, display, onOpen }) {
 
 function Names({ t, config, display, className = '', style }) {
   return (
-    <h1 className={`text-6xl leading-none ${className}`} style={{ ...display, ...style }}>
+    <h1 data-a="hero-names" className={`text-6xl leading-none ${className}`} style={{ ...display, ...style }}>
       {config.nameA}
       <span className="mx-3 text-4xl italic" style={{ color: t.accent }}>
         &amp;
@@ -239,7 +79,7 @@ function Names({ t, config, display, className = '', style }) {
 
 function CtaButtons({ t }) {
   return (
-    <div className="flex w-full max-w-xs gap-2.5">
+    <div data-a="hero-cta" className="flex w-full max-w-xs gap-2.5">
       <a
         href="#demo-rsvp"
         className="flex h-12 flex-[3] items-center justify-center rounded-full text-sm font-medium shadow-lg"
@@ -261,6 +101,7 @@ function CtaButtons({ t }) {
 function Photo({ t, config, className = '' }) {
   return (
     <img
+      data-a="hero-photo"
       src={t.photo.src}
       alt={`${config.nameA} y ${config.nameB}`}
       className={`h-full w-full object-cover ${className}`}
@@ -301,7 +142,9 @@ function ArchHero(props) {
       </p>
       <div className="relative mx-2.5 mt-6 min-h-0 flex-1">
         <div aria-hidden className="absolute -inset-2.5 bottom-0 rounded-t-full border border-b-0" style={{ borderColor: t.line }} />
-        <Photo {...props} className="absolute inset-0 rounded-t-full" />
+        <div className="absolute inset-0 overflow-hidden rounded-t-full">
+          <Photo {...props} className="absolute inset-0" />
+        </div>
       </div>
       <Names {...props} className="mt-6 text-center" />
       <p className="mt-4 text-center text-xs uppercase tracking-[0.28em] opacity-75">{config.date}</p>
@@ -323,7 +166,7 @@ function EditorialHero(props) {
         </p>
       </div>
       <div className="flex flex-1 flex-col justify-center px-7 py-6">
-        <h1 className="text-[64px] leading-[0.9]" style={display}>
+        <h1 data-a="hero-names" className="text-[64px] leading-[0.9]" style={display}>
           {config.nameA}
           <br />
           <span className="text-4xl italic" style={{ color: t.accent }}>

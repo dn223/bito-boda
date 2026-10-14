@@ -23,7 +23,7 @@ BITO es una SPA de invitación de boda con RSVP, construida con Vite + React 19 
 - `/` (y cualquier ruta desconocida) → `HomePage`: portada neutra que pide abrir el link personal.
 - `/rsvp/:token` → `InvitationPage`: invitación pública, cada familia accede con su propio token (ej. `familia-navarrete`).
 - `/dashboard` → `DashboardPage`: panel de administración para gestionar invitados (CRUD, export CSV, estadísticas).
-- `/disenador` → `DesignerPage` y `/disenador/vista?c=…` → `DemoPage` (carga diferida): diseñador de invitaciones de muestra para vender la plantilla. Es independiente de Bito & Coni: no toca Firestore ni los componentes de `invitation/`. Las opciones (paletas, letras, aperturas, portadas, lacres, fotos) viven en `src/designer/catalog.js`; la configuración viaja en el link como base64url (`encodeConfig`/`decodeConfig`). `components/designer/DemoInvitation.jsx` pinta la muestra.
+- `/disenador` → `DesignerPage` y `/disenador/vista?c=…` → `DemoPage` (carga diferida): diseñador de invitaciones de muestra para vender la plantilla. Es independiente de Bito & Coni: no toca Firestore ni los componentes de `invitation/`. Las opciones (paletas, letras, aperturas, portadas, lacres, fotos) viven en `src/designer/catalog.js`; la configuración viaja en el link como base64url (`encodeConfig`/`decodeConfig`). `components/designer/DemoInvitation.jsx` pinta la muestra. Las aperturas (`Splashes.jsx`) y la entrada de la portada usan GSAP 3.13 (`SplitText`, `DrawSVGPlugin`, gratis incluso para uso comercial); el resto de la app sigue con Framer Motion.
 
 ### Capa de datos: Firebase
 
