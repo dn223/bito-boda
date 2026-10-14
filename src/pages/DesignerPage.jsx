@@ -52,8 +52,12 @@ export default function DesignerPage() {
   }
 
   const copyLink = async () => {
-    await navigator.clipboard.writeText(`${window.location.origin}${demoUrl}`)
-    notify(uploaded ? 'Link copiado · la foto subida no viaja en el link' : 'Link copiado')
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}${demoUrl}`)
+      notify(uploaded ? 'Link copiado · la foto subida no viaja en el link' : 'Link copiado')
+    } catch {
+      notify('No se pudo copiar: copia el link desde Pantalla completa')
+    }
   }
 
   const pickPhoto = (e) => {
