@@ -23,6 +23,7 @@ BITO es una SPA de invitación de boda con RSVP, construida con Vite + React 19 
 - `/` (y cualquier ruta desconocida) → `HomePage`: portada neutra que pide abrir el link personal.
 - `/rsvp/:token` → `InvitationPage`: invitación pública, cada familia accede con su propio token (ej. `familia-navarrete`).
 - `/dashboard` → `DashboardPage`: panel de administración para gestionar invitados (CRUD, export CSV, estadísticas).
+- `/disenador` → `DesignerPage` y `/disenador/vista?c=…` → `DemoPage` (carga diferida): diseñador de invitaciones de muestra para vender la plantilla. Es independiente de Bito & Coni: no toca Firestore ni los componentes de `invitation/`. Las opciones (paletas, letras, aperturas, portadas, lacres, fotos) viven en `src/designer/catalog.js`; la configuración viaja en el link como base64url (`encodeConfig`/`decodeConfig`). `components/designer/DemoInvitation.jsx` pinta la muestra.
 
 ### Capa de datos: Firebase
 
@@ -52,12 +53,14 @@ npx firebase deploy      # hosting + reglas de Firestore
 
 ```
 src/
-  pages/            HomePage, InvitationPage, DashboardPage (una por ruta)
+  pages/            HomePage, InvitationPage, DashboardPage, DesignerPage, DemoPage (una por ruta)
   components/
     invitation/     secciones de la landing pública (Envelope, Hero, Countdown, EventDetails, RsvpForm, PhotoBreak, InfoCards, OliveBranch (solo en la cuenta regresiva), Timeline, FloralMargins, FallingPetals)
+    designer/       DemoInvitation (muestra configurable: aperturas sobre/cortina/monograma, portadas completa/arco/editorial)
     dashboard/      GuestTable (lista + filtros), GuestFormModal, LoginGate, Panel (tarjeta base), CountUp
     ui/             primitivos reutilizables (Button, Card, Input, Select, Badge, Reveal)
-  hooks/            useGuests (estado del dashboard), useCountdown
+  designer/         catalog.js — catálogo de opciones del diseñador + encode/decode del link
+  hooks/            useGuests (estado del dashboard), useCountdown, useGoogleFonts
   services/         guestsApi (única puerta a Firestore), firebase (init del SDK + App Check)
   mockData/         guests.js — solo WEDDING (config de la boda) y getDashboardStats
 ```

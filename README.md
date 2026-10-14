@@ -20,6 +20,8 @@ npm run dev
 | `/` | Portada neutra: pide abrir el link personal |
 | `/rsvp/:token` | Invitación de cada familia (el token se genera al crearla en el panel) |
 | `/dashboard` | Panel privado de los novios |
+| `/disenador` | Diseñador de invitaciones para mostrar a otras parejas (colores, apertura, portada, letra, foto) |
+| `/disenador/vista?c=…` | Un diseño a pantalla completa; el link lleva el diseño dentro |
 
 ## Puesta en marcha en Firebase (una sola vez)
 
