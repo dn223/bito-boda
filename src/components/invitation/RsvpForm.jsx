@@ -130,7 +130,7 @@ export function RsvpForm({ family, onDone }) {
           <h3 className="mt-3 font-serif text-3xl text-ink sm:text-4xl">{family.family}</h3>
           <p className="mt-2 text-sm text-slate-600">
             Reservamos <span className="font-semibold text-dusty-deep">{family.passes}</span>{' '}
-            {family.passes === 1 ? 'lugar' : 'lugares'} para ustedes
+            {family.passes === 1 ? 'lugar para ti' : 'lugares para ustedes'}
           </p>
         </div>
 

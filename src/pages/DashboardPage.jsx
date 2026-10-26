@@ -7,6 +7,7 @@ import {
   Clock3,
   Download,
   Eye,
+  FileUp,
   MapPin,
   Plus,
   RefreshCw,
@@ -17,9 +18,11 @@ import {
 import { CountUp } from '../components/dashboard/CountUp'
 import { GuestFormModal } from '../components/dashboard/GuestFormModal'
 import { GuestTable } from '../components/dashboard/GuestTable'
+import { ImportModal } from '../components/dashboard/ImportModal'
 import { LoginGate } from '../components/dashboard/LoginGate'
 import { Panel } from '../components/dashboard/Panel'
 import { useGuests } from '../hooks/useGuests'
+import { rsvpLink } from '../services/guestsApi'
 
 export default function DashboardPage() {
   return (
@@ -48,11 +51,13 @@ function Dashboard() {
     refresh,
     saveGuest,
     addGuest,
+    importGuests,
     removeGuest,
     exportCsv,
   } = useGuests()
 
   const [modalOpen, setModalOpen] = useState(false)
+  const [importOpen, setImportOpen] = useState(false)
   const [editing, setEditing] = useState(null)
   const [toast, setToast] = useState(null)
 
@@ -89,7 +94,7 @@ function Dashboard() {
   }
 
   const handleCopyLink = async (guest) => {
-    await navigator.clipboard.writeText(`${window.location.origin}/rsvp/${guest.token}`)
+    await navigator.clipboard.writeText(rsvpLink(guest.token))
     notify('Link copiado al portapapeles')
   }
 
@@ -129,6 +134,9 @@ function Dashboard() {
             </HeaderButton>
             <HeaderButton onClick={exportCsv} icon={Download}>
               Exportar CSV
+            </HeaderButton>
+            <HeaderButton onClick={() => setImportOpen(true)} icon={FileUp}>
+              Importar lista
             </HeaderButton>
             <motion.button
               type="button"
@@ -250,6 +258,13 @@ function Dashboard() {
           setEditing(null)
         }}
         onSubmit={handleSubmit}
+      />
+
+      <ImportModal
+        open={importOpen}
+        guests={guests}
+        onClose={() => setImportOpen(false)}
+        onImport={importGuests}
       />
 
       <AnimatePresence>

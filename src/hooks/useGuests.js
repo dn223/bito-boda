@@ -3,6 +3,7 @@ import {
   computeStats,
   createGuest,
   deleteGuest,
+  familyKey,
   getWeddingConfig,
   guestsToCsv,
   downloadCsv,
@@ -70,6 +71,31 @@ export function useGuests() {
     }
   }, [])
 
+  // Crea las familias una por una (cada una con su token nuevo). Las que ya
+  // existen con el mismo nombre se saltan, así repetir la importación no duplica.
+  const importGuests = useCallback(async (entries, onProgress) => {
+    setSaving(true)
+    setError(null)
+    const existing = new Set(guests.map((g) => familyKey(g.family)))
+    const created = []
+    try {
+      for (const entry of entries) {
+        if (existing.has(familyKey(entry.family))) continue
+        const guest = await createGuest({ ...entry, passes: entry.members.length })
+        existing.add(familyKey(entry.family))
+        created.push(guest)
+        onProgress?.(created.length)
+      }
+      return created
+    } catch (err) {
+      setError(err.message || 'Error al importar')
+      throw err
+    } finally {
+      if (created.length) setGuests((prev) => [...[...created].reverse(), ...prev])
+      setSaving(false)
+    }
+  }, [guests])
+
   const removeGuest = useCallback(async (id) => {
     setSaving(true)
     setError(null)
@@ -99,6 +125,7 @@ export function useGuests() {
     refresh,
     saveGuest,
     addGuest,
+    importGuests,
     removeGuest,
     exportCsv,
   }

@@ -2,6 +2,9 @@ export const WEDDING = {
   bride: 'Coni',
   groom: 'Bito',
   coupleLabel: 'Bito & Coni',
+  // Dominio público de la invitación: los links que se mandan a cada familia
+  // salen siempre de aquí, aunque el panel se abra desde otro lado (localhost).
+  siteUrl: 'https://boda-byc.web.app',
   // Hora de la ceremonia con la zona de El Salvador: la cuenta regresiva
   // marca lo mismo aunque el invitado esté en otro país.
   date: '2026-12-20T15:30:00-06:00',

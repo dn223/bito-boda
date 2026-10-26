@@ -109,6 +109,71 @@ export function computeStats(list) {
   return getDashboardStats(list)
 }
 
+export function rsvpLink(token) {
+  return `${WEDDING.siteUrl || window.location.origin}/rsvp/${token}`
+}
+
+// Lee la lista para importar: columnas Familia, Invitados (separados por ;) y
+// Notas. Acepta el CSV guardado desde Excel o lo pegado directo (tabuladores).
+export function parseGuestList(text) {
+  const clean = text.replace(/^﻿/, '')
+  const firstLine = clean.split(/\r?\n/, 1)[0]
+  const delimiter = firstLine.includes('\t') ? '\t' : firstLine.includes(';') && !firstLine.includes(',') ? ';' : ','
+
+  const rows = []
+  let row = []
+  let field = ''
+  let quoted = false
+  for (let i = 0; i < clean.length; i += 1) {
+    const ch = clean[i]
+    if (quoted) {
+      if (ch === '"' && clean[i + 1] === '"') {
+        field += '"'
+        i += 1
+      } else if (ch === '"') {
+        quoted = false
+      } else {
+        field += ch
+      }
+    } else if (ch === '"') {
+      quoted = true
+    } else if (ch === delimiter) {
+      row.push(field)
+      field = ''
+    } else if (ch === '\n' || ch === '\r') {
+      if (ch === '\r' && clean[i + 1] === '\n') i += 1
+      row.push(field)
+      rows.push(row)
+      row = []
+      field = ''
+    } else {
+      field += ch
+    }
+  }
+  row.push(field)
+  rows.push(row)
+
+  const tidy = (value) => (value || '').replace(/\s+/g, ' ').trim()
+  return rows
+    .filter((cells) => cells.some((cell) => cell.trim()))
+    .filter((cells, index) => !(index === 0 && /familia/i.test(cells[0]) && /invitad/i.test(cells[1] || '')))
+    .map(([family, members, notes]) => ({
+      family: tidy(family),
+      members: [...new Set((members || '').split(/[;\n]/).map(tidy).filter(Boolean))],
+      notes: tidy(notes),
+    }))
+    .filter((entry) => entry.family && entry.members.length > 0)
+}
+
+export function familyKey(name) {
+  return (name || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 export function guestsToCsv(list) {
   const headers = [
     'Familia',
@@ -125,10 +190,7 @@ export function guestsToCsv(list) {
 
   const rows = list.map((g) => {
     const detail = (g.guests || []).map((p) => p.name).join('; ')
-    const link =
-      typeof window !== 'undefined'
-        ? `${window.location.origin}/rsvp/${g.token}`
-        : `/rsvp/${g.token}`
+    const link = rsvpLink(g.token)
 
     return [
       g.family,
