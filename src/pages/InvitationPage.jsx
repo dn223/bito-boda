@@ -59,13 +59,17 @@ export default function InvitationPage() {
 
         <InfoCards background={couple4} />
 
-        <PhotoBreak
-          src={ringPhoto}
-          alt="Anillo de compromiso"
-          overlay="Eclesiastés 4:12 … Cordón de tres dobleces no se corta fácilmente."
-          objectPosition="center 40%"
-          darkOverlayText
-        />
+        {/* El versículo va entre las dos fotos para que no queden pegadas */}
+        <Reveal className="mx-auto max-w-xl px-6 py-14 text-center">
+          <p className="font-serif text-2xl italic leading-relaxed text-ink sm:text-3xl">
+            “Cordón de tres dobleces no se corta fácilmente.”
+          </p>
+          <p className="mt-4 text-xs font-medium uppercase tracking-[0.3em] text-dusty-deep">
+            Eclesiastés 4:12
+          </p>
+        </Reveal>
+
+        <PhotoBreak src={ringPhoto} alt="Anillo de compromiso" objectPosition="center 40%" />
 
         <section id="rsvp" className="relative px-4 py-16 sm:px-6">
           <Reveal className="mx-auto mb-10 max-w-2xl text-center">
