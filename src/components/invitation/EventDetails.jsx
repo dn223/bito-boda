@@ -36,10 +36,7 @@ export function EventDetails() {
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 via-black/35 to-transparent" />
 
         <figcaption className="absolute inset-x-0 bottom-0 px-6 pb-24 text-center [text-shadow:0_2px_10px_rgba(0,0,0,0.75)]">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-white">
-            {event.title}
-          </p>
-          <h3 className="mt-2 font-serif text-4xl leading-tight text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)] sm:text-5xl">
+          <h3 className="font-serif text-4xl leading-tight text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)] sm:text-5xl">
             {event.place}
           </h3>
           <p className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-white">
