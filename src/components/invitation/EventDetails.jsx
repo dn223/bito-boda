@@ -20,7 +20,7 @@ export function EventDetails() {
         whileInView={{ opacity: 1 }}
         viewport={{ once: true, amount: 0.2 }}
         transition={{ duration: 0.9 }}
-        className="relative h-[62svh] w-full overflow-hidden sm:h-[70svh]"
+        className="photo-fade relative h-[62svh] w-full overflow-hidden sm:h-[70svh]"
       >
         <motion.img
           src={fincaPhoto}
@@ -33,11 +33,9 @@ export function EventDetails() {
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1] }}
         />
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-linen via-linen/60 to-transparent" />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-linen via-linen/50 to-transparent" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 via-black/35 to-transparent" />
 
-        <figcaption className="absolute inset-x-0 bottom-0 px-6 pb-12 text-center [text-shadow:0_2px_10px_rgba(0,0,0,0.75)]">
+        <figcaption className="absolute inset-x-0 bottom-0 px-6 pb-24 text-center [text-shadow:0_2px_10px_rgba(0,0,0,0.75)]">
           <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-white">
             {event.title}
           </p>

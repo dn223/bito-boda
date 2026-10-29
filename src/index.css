@@ -47,6 +47,11 @@ body {
   background-color: color-mix(in srgb, var(--color-marshmallow) 55%, white);
 }
 
+/* Difuminado de todas las fotos: se vuelven transparentes arriba y abajo y se
+   funden con el mantel (sin línea, porque se ve la textura de atrás). */
+.photo-fade {
+  mask-image: linear-gradient(to bottom, transparent, black 6rem, black calc(100% - 7rem), transparent);
+}
 
 /* Mantel de boda: blanco viejo tirando a beige, con grano de tela. */
 .mantel {

@@ -64,7 +64,6 @@ export default function InvitationPage() {
           alt="Anillo de compromiso"
           overlay="Eclesiastés 4:12 … Cordón de tres dobleces no se corta fácilmente."
           objectPosition="center 40%"
-          softFade
           darkOverlayText
         />
 

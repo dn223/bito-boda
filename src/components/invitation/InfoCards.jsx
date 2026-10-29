@@ -16,20 +16,21 @@ export function InfoCards({ background }) {
 
       <div className="relative isolate overflow-hidden">
         {background && (
-          <>
+          // el difuminado va solo en el fondo: en el contenedor rompía la mezcla del dibujo
+          <div className="photo-fade absolute inset-0 -z-10">
             <img
               src={background}
               loading="lazy"
               decoding="async"
               alt=""
               aria-hidden
-              className="absolute inset-0 -z-10 h-full w-full object-cover object-[center_25%]"
+              className="h-full w-full object-cover object-[center_25%]"
             />
-            <div className="absolute inset-0 -z-10 bg-black/40" />
-          </>
+            <div className="absolute inset-0 bg-black/40" />
+          </div>
         )}
 
-        <div className="mx-auto max-w-2xl px-6 py-20 text-center text-white">
+        <div className="mx-auto max-w-2xl px-6 py-28 text-center text-white">
           <Reveal delay={0.05}>
             <Mail className="mx-auto h-7 w-7 drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)]" />
             <p className="mt-4 text-xs font-medium uppercase tracking-[0.3em] text-white/85 drop-shadow-[0_1px_6px_rgba(0,0,0,0.7)]">

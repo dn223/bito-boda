@@ -23,7 +23,8 @@ export function Hero() {
   return (
     <section ref={bandRef} className="relative">
       <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
-        <div className="sticky top-0 h-[100svh] w-full overflow-hidden">
+        {/* La foto se vuelve transparente al final y se funde con el mantel, como las demás */}
+        <div className="sticky top-0 h-[100svh] w-full overflow-hidden [mask-image:linear-gradient(to_bottom,black_calc(100%-7rem),transparent)]">
           <motion.img
             src={couplePhoto}
             alt={`${WEDDING.groom} y ${WEDDING.bride}`}

@@ -7,7 +7,6 @@ export function PhotoBreak({
   overlay,
   tall = false,
   objectPosition = 'center',
-  softFade = false,
   darkOverlayText = false,
 }) {
   return (
@@ -20,7 +19,7 @@ export function PhotoBreak({
         className="relative mx-auto overflow-hidden"
       >
         <div
-          className={`relative w-full overflow-hidden ${
+          className={`photo-fade relative w-full overflow-hidden ${
             tall ? 'h-[72svh] sm:h-[78svh]' : 'h-[58svh] sm:h-[68svh]'
           }`}
         >
@@ -35,16 +34,6 @@ export function PhotoBreak({
             whileInView={{ scale: 1 }}
             viewport={{ once: true, amount: 0.3 }}
             transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
-          />
-          <div
-            className={`pointer-events-none absolute inset-x-0 top-0 bg-gradient-to-b from-linen to-transparent ${
-              softFade ? 'h-10' : 'h-24'
-            }`}
-          />
-          <div
-            className={`pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-linen to-transparent ${
-              softFade ? 'h-12' : 'h-28'
-            }`}
           />
 
           {overlay && darkOverlayText && (
